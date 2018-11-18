@@ -1,0 +1,39 @@
+﻿<Window x:Class="Assistant.View.AuthorizationWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="Assistant: Авторизация" Height="300" Width="320" ResizeMode="CanMinimize">
+    <Window.Resources>
+        <ResourceDictionary Source="/Resources/AuthorizationWindowsResources.xaml"/>
+    </Window.Resources>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition/>
+            <RowDefinition Height="60"/>
+            <RowDefinition Height="60"/>
+            <RowDefinition Height="25"/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+        <Label Grid.Row="0" Content="Авторизация в системе" />
+        <Grid Height="30" Width="276" Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition Width="200"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Grid.Column="0" Text="Логин"/>
+            <TextBox Grid.Column="1" Text="{Binding Login, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" />
+        </Grid>
+        <Grid Height="30" Width="276" Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition Width="200"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Grid.Column="0" Text="Пароль"/>
+            <PasswordBox Name="Pwd" Grid.Column="1" PasswordChar="*" />
+        </Grid>
+        <TextBlock Grid.Row="3" HorizontalAlignment="Center" Text="{Binding Statys, UpdateSourceTrigger=Explicit, Mode=OneWay}" />
+        <Button Grid.Row="4" Content="Вход" IsDefault="True" Command="{Binding Auth}" CommandParameter="{Binding ElementName=Pwd}" />
+    </Grid>
+</Window>
