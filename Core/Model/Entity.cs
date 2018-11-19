@@ -39,13 +39,12 @@ namespace Core.Model
 
     public class TypeService
     {
-        public Dictionary<List<Service>, Doctor> GetServiceOfDoctor { get; set; }
+        public Dictionary<Service, Doctor> GetServiceOfDoctor { get; set; }
         public string Lable { get; set; }
     }
 
     public class Entry
     {
-        public uint Id { get; set; }
         public IEmployees RegistratorEntry { get; set; }
         public System.DateTime DateRegistration { get; set; }
         public Patient PatientEntry { get; set; }

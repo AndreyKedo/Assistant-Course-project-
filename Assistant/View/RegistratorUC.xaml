@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:model="clr-namespace:Core.Model;assembly=Core"
+             xmlns:System="clr-namespace:System;assembly=mscorlib"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="980">
 
@@ -12,9 +12,12 @@
     </UserControl.Resources>
     
     <DockPanel>
-        <UniformGrid Height="30" DockPanel.Dock="Top" Columns="2" >
-            <TextBlock Text="{Binding Statys, Mode=OneTime}" />
+        <UniformGrid Height="30" DockPanel.Dock="Top" Columns="3" >
+            <TextBlock Text="{Binding Statys, Mode=OneWay}" />
             <CheckBox x:Name="CheckHide" Content="Показать список клиентов" Margin="7" IsChecked="True" />
+            <Button Grid.Row="1" Grid.Column="2" HorizontalAlignment="Right" Margin="0,0,10,0" 
+                    Content="Записать" Height="24" Width="80"
+                    Command="{Binding WriteEntry}"/>
         </UniformGrid>
 
         <Grid DockPanel.Dock="Left">
@@ -28,7 +31,7 @@
             </Grid.RowDefinitions>
 
             <!--Поиск записи-->
-            <TextBox Grid.Column="0" Grid.Row="0" Text="" />
+            <DatePicker Grid.Column="0" Grid.Row="0" SelectedDate="{Binding FindEntry, Mode=OneWayToSource, UpdateSourceTrigger=PropertyChanged}" />
             <!--Поиск клиента-->
             <TextBox Grid.Column="1" Grid.Row="0" Style="{StaticResource HideTextBox}" Text="" />
 
@@ -38,13 +41,14 @@
                     <GridView>
                         <GridViewColumn DisplayMemberBinding="{Binding PatientEntry.LastName}" Header="Клиент" Width="auto"/>
                         <GridViewColumn DisplayMemberBinding="{Binding ServiceEntry.Lable}" Header="Услуга" Width="auto" />
-                        <GridViewColumn DisplayMemberBinding="{Binding DateRegistration}" Header="Дата" Width="auto" />
+                        <GridViewColumn DisplayMemberBinding="{Binding DateRegistration}" Header="Дата и время записи" Width="auto" />
                     </GridView>
                 </ListView.View>
             </ListView>
             
             <!--Список клиентов-->
-            <ListBox Grid.Column="1" Grid.Row="1" Style="{StaticResource HideList}" ItemsSource="{Binding Patients}" >
+            <ListBox Grid.Column="1" Grid.Row="1" Style="{StaticResource HideList}" ItemsSource="{Binding Patients, Mode=OneWay}"
+                     SelectedItem="{Binding SelectPatient}">
                 <ListBox.ItemTemplate>
                     <DataTemplate>
                         <StackPanel Orientation="Horizontal">
@@ -63,48 +67,52 @@
                 <ColumnDefinition Width="auto"/>
                 <ColumnDefinition/>
             </Grid.ColumnDefinitions>
-            <Grid.RowDefinitions>
-                <RowDefinition/>
-                <RowDefinition Height="0.6in"/>
-            </Grid.RowDefinitions>
-            <GroupBox Style="{StaticResource GroupInput}" Grid.Column="0" Grid.Row="0" Header="Пациент" >
-                <StackPanel>
+            <GroupBox Style="{StaticResource GroupInput}" Grid.Column="0" Header="Пациент" >
+                <StackPanel DataContext="{Binding EntryCreate}" >
                     <UniformGrid Style="{StaticResource Input}" Columns="2" >
                         <TextBlock Text="Фамилия" />
-                        <TextBox Text=""/>
+                        <TextBox Text="{Binding LName, Mode=TwoWay}"/>
                     </UniformGrid>
                     <UniformGrid Style="{StaticResource Input}" Columns="2" >
                         <TextBlock Text="Имя" />
-                        <TextBox/>
+                        <TextBox Text="{Binding FName, Mode=TwoWay}"/>
                     </UniformGrid>
                     <UniformGrid Style="{StaticResource Input}" Columns="2" >
                         <TextBlock Text="Отчество" />
-                        <TextBox/>
+                        <TextBox Text="{Binding TName, Mode=TwoWay}" />
                     </UniformGrid>
                     <UniformGrid Style="{StaticResource Input}" Columns="2" >
                         <TextBlock Text="Пол" />
-                        <TextBox/>
+                        <TextBox Text="{Binding Sex, Mode=TwoWay}" />
                     </UniformGrid>
                     <UniformGrid Style="{StaticResource Input}" Columns="2" >
                         <TextBlock Text="Дата рождения" />
-                        <DatePicker FontSize="11" />
+                        <DatePicker FontSize="11" SelectedDate="{Binding Birthday, Mode=TwoWay}" />
+                    </UniformGrid>
+                    <UniformGrid Style="{StaticResource Input}" Columns="2" >
+                        <TextBlock Text="Адрес проживания" />
+                        <TextBox Text="{Binding Address, Mode=TwoWay}" />
                     </UniformGrid>
                     <UniformGrid Style="{StaticResource Input}" Columns="2" >
                         <TextBlock Text="Номер телефона" />
-                        <TextBox/>
+                        <TextBox Text="{Binding PhoneNumber, Mode=TwoWay}" />
                     </UniformGrid>
                 </StackPanel>
             </GroupBox>
-            <GridSplitter Grid.Column="1" Grid.RowSpan="2" Width="4" ResizeDirection="Columns" ResizeBehavior="PreviousAndNext" />
-            <GroupBox Style="{StaticResource GroupInput}" Grid.Column="2" Grid.Row="0" Header="Услуга и дата" >
+            <GridSplitter Grid.Column="1" Width="4" ResizeDirection="Columns" ResizeBehavior="PreviousAndNext" />
+            <GroupBox Style="{StaticResource GroupInput}" Grid.Column="2" Header="Услуга и дата" >
                 <StackPanel>
                     <UniformGrid Style="{StaticResource Input}" Columns="2" >
                         <TextBlock Text="Дата регистрации" />
-                        <DatePicker FontSize="11" />
+                        <DatePicker FontSize="11"  SelectedDate="{Binding EntryCreate.DateRegistration, Mode=TwoWay}" />
+                    </UniformGrid>
+                    <UniformGrid Style="{StaticResource Input}" Columns="2" >
+                        <TextBlock Text="Время приёма" />
+                        <TextBox Text="{Binding EntryCreate.Timepick}" />
                     </UniformGrid>
                     <UniformGrid Style="{StaticResource Input}" Columns="2" >
                         <TextBlock Text="Тип услуги" />
-                        <ComboBox ItemsSource="{Binding TypeServices}" SelectedItem="{Binding SelectService}" >
+                        <ComboBox ItemsSource="{Binding TypeServices, Mode=OneWay}" SelectedItem="{Binding SectedType, Mode=TwoWay}" >
                             <ComboBox.ItemTemplate>
                                 <DataTemplate>
                                     <TextBlock Text="{Binding Lable, Mode=OneWay}"/>
@@ -114,25 +122,26 @@
                     </UniformGrid>
                     <UniformGrid Style="{StaticResource Input}" Columns="2" >
                         <TextBlock Text="Услуга" />
-                        <ComboBox ItemsSource="{Binding Services}" >
+                        <ComboBox ItemsSource="{Binding Services, Mode=OneWay}" SelectedItem="{Binding SelectedService, Mode=TwoWay}" >
                             <ComboBox.ItemTemplate>
                                 <DataTemplate>
                                     <UniformGrid Rows="2">
-                                        <TextBlock Text="{Binding Lable}" />
-                                        <TextBlock Text="{Binding Price}"/>
+                                        <TextBlock Text="{Binding Lable, Mode=OneWay}" />
+                                        <TextBlock Text="{Binding Price, Mode=OneWay}"/>
                                     </UniformGrid>
                                 </DataTemplate>
                             </ComboBox.ItemTemplate>
                         </ComboBox>
                     </UniformGrid>
-                    <UniformGrid Style="{StaticResource Input}" Columns="2" >
-                        <TextBlock Text="Специалист" />
-                        <ComboBox/>
-                    </UniformGrid>
+                    <GroupBox Header="Специалист" Style="{StaticResource GroupInput}" >
+                        <StackPanel DataContext="{Binding Doc, Mode=OneWay}">
+                            <TextBlock Text="{Binding StringFormat=ФИО: {0}, Path=Fio, Mode=OneWay}" />
+                            <TextBlock Text="{Binding StringFormat=Специализаци: {0}, Path=Specialization, Mode=OneWay}" />
+                            <TextBlock Text="{Binding StringFormat=Кабинет: {0}, Path=CabinetNumber, Mode=OneWay}" />
+                        </StackPanel>
+                    </GroupBox>
                 </StackPanel>
             </GroupBox>
-            <Button Grid.Row="1" Grid.Column="2" Content="Записать" Height="30" Width="80"
-                    Command="{Binding WriteEntry}" CommandParameter=""/>
         </Grid>
     </DockPanel>
 </UserControl>
