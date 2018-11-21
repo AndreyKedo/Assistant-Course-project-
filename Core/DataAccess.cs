@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Data.Common;
 using System.Threading.Tasks;
 using System.Linq;
+using System;
 
 namespace Core
 {
@@ -188,9 +189,22 @@ namespace Core
 
         public IEnumerable<Patient> FindPatient(string fio)
         {
+            string[] fioSplit = new string[3];
+            fio.Split(new char[] { ' ', '.' }, StringSplitOptions.RemoveEmptyEntries).CopyTo(fioSplit, 0);
+            for (int i = 0; i < 3; i++)
+            {
+                if (fioSplit[i] != null)
+                {
+                    if (char.IsLower(fioSplit[i][0]))
+                    {
+                        char[] buff = fioSplit[i].ToCharArray();
+                        buff[0] = char.ToUpperInvariant(buff[0]);
+                        fioSplit[i] = new string(buff);
+                    }
+                }
+            }
             IEnumerable<Patient> patients = from patient in GetPatient
-                                            let str = patient.FirstName + patient.LastName + patient.ThridName
-                                            where str == fio
+                                            where patient.LastName == fioSplit[0] || patient.FirstName == fioSplit[1] || patient.ThridName == fioSplit[2]
                                             select patient;
             return patients;
         }

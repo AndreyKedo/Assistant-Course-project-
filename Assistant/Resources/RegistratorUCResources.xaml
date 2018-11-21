@@ -10,6 +10,19 @@
         <Setter Property="Margin" Value="0,4,0,4" />
     </Style>
 
+    <Style x:Key="WriteButton" TargetType="Button" >
+        <Setter Property="Width"  Value="80" />
+        <Setter Property="HorizontalAlignment" Value="Right" />
+        <Setter Property="Margin" Value="0,0,10,0" />
+    </Style>
+    
+    <Style x:Key="CleanButton" TargetType="Button">
+        <Setter Property="Height" Value="25" />
+        <Setter Property="Width" Value="100" />
+        <Setter Property="HorizontalAlignment" Value="Right"/>
+        <Setter Property="Margin" Value="0,0,10,0"/>
+    </Style>
+    
     <Style x:Key="HideList" TargetType="ListBox">
         <Setter Property="Visibility" Value="Collapsed"/>
         <Style.Triggers>
@@ -29,7 +42,7 @@
         </Style.Triggers>
     </Style>
 
-    <Style x:Key="HideTextBox" TargetType="TextBox">
+    <Style x:Key="HideUniformGrid" TargetType="UniformGrid">
         <Setter Property="Visibility" Value="Collapsed"/>
         <Style.Triggers>
             <DataTrigger Binding="{Binding ElementName=CheckHide, Path=IsChecked}" Value="True" >

@@ -46,6 +46,10 @@ namespace Core.Model
     public class Entry
     {
         public IEmployees RegistratorEntry { get; set; }
+        public string DateRegistrationStr
+        {
+            get => DateRegistration.ToString("g");
+        }
         public System.DateTime DateRegistration { get; set; }
         public Patient PatientEntry { get; set; }
         public IEmployees DoctorEntry { get; set; }

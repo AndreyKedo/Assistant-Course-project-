@@ -15,9 +15,9 @@
         <UniformGrid Height="30" DockPanel.Dock="Top" Columns="3" >
             <TextBlock Text="{Binding Statys, Mode=OneWay}" />
             <CheckBox x:Name="CheckHide" Content="Показать список клиентов" Margin="7" IsChecked="True" />
-            <Button Grid.Row="1" Grid.Column="2" HorizontalAlignment="Right" Margin="0,0,10,0" 
-                    Content="Записать" Height="24" Width="80"
-                    Command="{Binding WriteEntry}"/>
+            <Button Grid.Row="1" Grid.Column="2"
+                    Style="{StaticResource WriteButton}"
+                    Content="Записать" Command="{Binding WriteEntry}"/>
         </UniformGrid>
 
         <Grid DockPanel.Dock="Left">
@@ -26,14 +26,21 @@
                 <ColumnDefinition />
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
-                <RowDefinition Height="30" />
+                <RowDefinition Height="50" />
                 <RowDefinition/>
             </Grid.RowDefinitions>
 
             <!--Поиск записи-->
-            <DatePicker Grid.Column="0" Grid.Row="0" SelectedDate="{Binding FindEntry, Mode=OneWayToSource, UpdateSourceTrigger=PropertyChanged}" />
+            <UniformGrid Grid.Column="0" Grid.Row="0" Rows="2" >
+                <Label HorizontalContentAlignment="Center" Content="Для поиска записи введите дату"/>
+                <DatePicker SelectedDate="{Binding FindEntry, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                        FirstDayOfWeek="Monday" SelectedDateFormat="Short" />
+            </UniformGrid>
             <!--Поиск клиента-->
-            <TextBox Grid.Column="1" Grid.Row="0" Style="{StaticResource HideTextBox}" Text="" />
+            <UniformGrid Style="{StaticResource HideUniformGrid}"  Grid.Column="1" Grid.Row="0" Rows="2" >
+                <Label HorizontalContentAlignment="Center" Content="Для поиска введите ФИО"/>
+                <TextBox Text="{Binding FindPatient, Mode=OneWayToSource, UpdateSourceTrigger=PropertyChanged}" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" />
+            </UniformGrid>
 
             <!--Список записей-->
             <ListView Grid.Column="0" Grid.Row="1" Style="{StaticResource MaxList}" ItemsSource="{Binding Entries, Mode=OneWay}" >
@@ -41,7 +48,7 @@
                     <GridView>
                         <GridViewColumn DisplayMemberBinding="{Binding PatientEntry.LastName}" Header="Клиент" Width="auto"/>
                         <GridViewColumn DisplayMemberBinding="{Binding ServiceEntry.Lable}" Header="Услуга" Width="auto" />
-                        <GridViewColumn DisplayMemberBinding="{Binding DateRegistration}" Header="Дата и время записи" Width="auto" />
+                        <GridViewColumn DisplayMemberBinding="{Binding DateRegistrationStr}" Header="Дата и время записи" Width="auto" />
                     </GridView>
                 </ListView.View>
             </ListView>
@@ -108,11 +115,11 @@
                     </UniformGrid>
                     <UniformGrid Style="{StaticResource Input}" Columns="2" >
                         <TextBlock Text="Время приёма" />
-                        <TextBox Text="{Binding EntryCreate.Timepick}" />
+                        <TextBox Text="{Binding EntryCreate.Timepick, Mode=TwoWay}" />
                     </UniformGrid>
                     <UniformGrid Style="{StaticResource Input}" Columns="2" >
-                        <TextBlock Text="Тип услуги" />
-                        <ComboBox ItemsSource="{Binding TypeServices, Mode=OneWay}" SelectedItem="{Binding SectedType, Mode=TwoWay}" >
+                        <TextBlock Text="Категория услуги" />
+                        <ComboBox ItemsSource="{Binding TypeServices, Mode=OneWay}" SelectedItem="{Binding SectedType, Mode=OneWayToSource}" >
                             <ComboBox.ItemTemplate>
                                 <DataTemplate>
                                     <TextBlock Text="{Binding Lable, Mode=OneWay}"/>
@@ -122,17 +129,18 @@
                     </UniformGrid>
                     <UniformGrid Style="{StaticResource Input}" Columns="2" >
                         <TextBlock Text="Услуга" />
-                        <ComboBox ItemsSource="{Binding Services, Mode=OneWay}" SelectedItem="{Binding SelectedService, Mode=TwoWay}" >
+                        <ComboBox ItemsSource="{Binding Services, Mode=OneWay}" SelectedItem="{Binding SelectedService, Mode=OneWayToSource}" >
                             <ComboBox.ItemTemplate>
                                 <DataTemplate>
                                     <UniformGrid Rows="2">
-                                        <TextBlock Text="{Binding Lable, Mode=OneWay}" />
-                                        <TextBlock Text="{Binding Price, Mode=OneWay}"/>
+                                        <TextBlock Text="{Binding StringFormat=Название: {0}, Path=Lable, Mode=OneWay}" />
+                                        <TextBlock Text="{Binding StringFormat=Цена: {0}, Path=Price, Mode=OneWay}"/>
                                     </UniformGrid>
                                 </DataTemplate>
                             </ComboBox.ItemTemplate>
                         </ComboBox>
                     </UniformGrid>
+                    <TextBlock Text="{Binding StringFormat=Цена: {0} Руб., Path=SelectedService.Price, Mode=OneWay}" />
                     <GroupBox Header="Специалист" Style="{StaticResource GroupInput}" >
                         <StackPanel DataContext="{Binding Doc, Mode=OneWay}">
                             <TextBlock Text="{Binding StringFormat=ФИО: {0}, Path=Fio, Mode=OneWay}" />
@@ -140,6 +148,7 @@
                             <TextBlock Text="{Binding StringFormat=Кабинет: {0}, Path=CabinetNumber, Mode=OneWay}" />
                         </StackPanel>
                     </GroupBox>
+                    <Button Style="{StaticResource CleanButton}" Command="{Binding CleanForm}" Content="Очистить форму" />
                 </StackPanel>
             </GroupBox>
         </Grid>
