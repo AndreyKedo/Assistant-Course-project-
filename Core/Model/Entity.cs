@@ -1,4 +1,5 @@
 ﻿using Core.Interface;
+using System;
 using System.Collections.Generic;
 
 namespace Core.Model
@@ -48,7 +49,7 @@ namespace Core.Model
         public IEmployees RegistratorEntry { get; set; }
         public string DateRegistrationStr
         {
-            get => DateRegistration.ToString("g");
+            get => DateRegistration.ToUniversalTime().ToString("g");
         }
         public System.DateTime DateRegistration { get; set; }
         public Patient PatientEntry { get; set; }

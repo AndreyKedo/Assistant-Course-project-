@@ -59,6 +59,7 @@
     <Compile Include="Interface\INotifyContentChanged.cs" />
     <Compile Include="Interface\IViewModel.cs" />
     <Compile Include="Interface\IWindow.cs" />
+    <Compile Include="ViewModel\BindingContextMenu.cs" />
     <Compile Include="ViewModel\EmployeeDocVM.cs" />
     <Compile Include="ViewModel\EmployeeRegVM.cs" />
     <Compile Include="ViewModel\MainViewModel.cs" />
@@ -67,6 +68,9 @@
     </Compile>
     <Compile Include="View\RegistratorUC.xaml.cs">
       <DependentUpon>RegistratorUC.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="View\ReportWindow.xaml.cs">
+      <DependentUpon>ReportWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="WindowsRegistration.cs" />
     <Page Include="Resources\AuthorizationWindowsResources.xaml">
@@ -108,6 +112,10 @@
       <SubType>Code</SubType>
     </Compile>
     <Page Include="View\RegistratorUC.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="View\ReportWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

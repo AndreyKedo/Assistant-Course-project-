@@ -1,18 +1,49 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
 using System.Collections.ObjectModel;
 using Assistant.Interface;
 using Core.Interface;
 using Core.Model;
 using System.Windows.Input;
 
+using Assistant.View;
+
 namespace Assistant.ViewModel
 {
+    /// <summary>
+    /// В будущем написать диалоговый сервис что бы отвязать VM от view
+    /// Нужны диалоги отчётов
+    /// </summary>
     class EmployeeRegVM : BaseViewModel, IViewModel
     {
         readonly IDataAccessRegistrator DataAccess;
+        //статус доступа
+        private string _statys;
+        public string Statys
+        {
+            get => _statys;
+            set
+            {
+                _statys = value;
+                OnChanged(nameof(Statys));
+            }
+        }
+        //Объект порождающий записи
+        private CreateEntry _entry;
+        public CreateEntry EntryCreate
+        {
+            get => _entry;
+            set
+            {
+                _entry = value;
+                OnChanged(nameof(CreateEntry));
+            }
+        }
+
+        public EmployeeRegVM(IDataAccessRegistrator dataAccess)
+        {
+            DataAccess = dataAccess;
+            Update();
+        }
 
         #region Коллекции пацментов и записей
         public ObservableCollection<Patient> Patients { get; set; }
@@ -64,6 +95,22 @@ namespace Assistant.ViewModel
         }
         #endregion
 
+        #region Диалог отчётов
+        private IWindow ReportView;
+
+        private string _textReport;
+        public string TextReport
+        {
+            get => _textReport;
+            set
+            {
+                _textReport = value;
+                OnChanged(nameof(TextReport));
+            }
+        }
+        #endregion
+        
+        #region Сущности хранящие данные для клиента и специалиста
         //Текущий специалист который оказывате выбранную услугу
         private Doctor _doc;
         public Doctor Doc
@@ -73,17 +120,6 @@ namespace Assistant.ViewModel
             {
                 _doc = value;
                 OnChanged(nameof(Doc));
-            }
-        }
-        //статус доступа
-        private string _statys;
-        public string Statys
-        {
-            get => _statys;
-            set
-            {
-                _statys = value;
-                OnChanged(nameof(Statys));
             }
         }
         //Выбранный клиент
@@ -99,17 +135,9 @@ namespace Assistant.ViewModel
                 OnChanged(nameof(SelectPatient));
             }
         }
-        //Объект порождающий записи
-        private CreateEntry _entry;
-        public CreateEntry EntryCreate
-        {
-            get => _entry;
-            set
-            {
-                _entry = value;
-                OnChanged(nameof(CreateEntry));
-            }
-        }
+        #endregion
+        
+        #region Свойства для поиска
         //Свойство поиска записей и 
         private DateTime _findEntry;
         public DateTime FindEntry
@@ -130,33 +158,58 @@ namespace Assistant.ViewModel
             set
             {
                 _findPatient = value;
-                if (_findPatient != string.Empty)
+                if (_findPatient != string.Empty && DataAccess.GetPatient.Count != 0)
                 {
                     Patients.Clear();
                     foreach (var item in DataAccess.FindPatient(_findPatient))
                     {
                         Patients.Add(item);
                     }
-                }else
+                }else if(DataAccess.GetPatient.Count != 0)
                 {
-                    UploadPatient();
+                    GetEntriesToDate(DateTime.UtcNow);
                 }
                 OnChanged(nameof(FindPatient));
             }
         }
-
-        public EmployeeRegVM(IDataAccessRegistrator dataAccess)
-        {
-            DataAccess = dataAccess;
-            Services = new ObservableCollection<Service>();
-            Entries = new ObservableCollection<Entry>();
-            Update();
-            EntryCreate = new CreateEntry();
-            EntryCreate.ClearData();
-            FindEntry = DateTime.UtcNow;
-        }
+        #endregion
 
         #region Команды
+        //создает отчет по "Оказанные услуги по специалистам"
+        public ICommand ReportService
+        {
+            get
+            {
+                return new DelegateCommand(async (obj)=> 
+                {
+                    ReportView = new ReportWindow()
+                    {
+                        DataContext = this,
+                        Title = "Оказанные услуги по специалистам"
+                    };
+                    TextReport = await DataAccess.GetServiceOfDoctorReport();
+                    ReportView.Show();
+                });
+            }
+        }
+        //создает отчет по "Оказанные услуги клиентам"
+        public ICommand ReportCommand
+        {
+            get => new DelegateCommand(async (obj) => 
+            {
+                ReportView = new ReportWindow
+                {
+                    Title = "Оказанные услуги по клиентам",
+                    DataContext = this
+                };
+                TextReport = await DataAccess.GetPatientReport();
+                ReportView.Show();
+            }, (obj)=> 
+            {
+                return Patients.Count != 0;
+            });
+        }
+        //создает запись
         public ICommand WriteEntry
         {
             get => new DelegateCommand(async(obj)=> 
@@ -174,12 +227,13 @@ namespace Assistant.ViewModel
                 SectedType = null;
                 Doc = null;
                 EntryCreate.ClearData();
-                UpdateLists();
+                GetEntriesToDate(DateTime.UtcNow);
             },(obj)=> 
             {
                 return EntryCreate.ValidationData() && SelectedService != null;
             });
         }
+        //очищает форму
         public ICommand CleanForm
         {
             get => new DelegateCommand((obj) =>
@@ -199,32 +253,11 @@ namespace Assistant.ViewModel
         //выгружает записи на текущий день
         private void GetEntriesToDate(DateTime date)
         {
-            if (Entries.Count != 0)
-                Entries.Clear();
-            foreach (var item in DataAccess.FindEnties(date))
+            if (DataAccess.GetPatient.Count != 0)
             {
-                Entries.Add(item);
-            }
-        }
-
-        //выгружает из буффера клиентов
-        private void UploadPatient()
-        {
-            if (Patients.Count == 0)
-            {
-                foreach (var item in DataAccess.GetPatient)
-                {
-                    Patients.Add(item);
-                }
-            }
-        }
-
-        //выгружает из буффера записи
-        private void UploadEntry()
-        {
-            if (Entries.Count == 0)
-            {
-                foreach(var item in DataAccess.GetEntries)
+                if (Entries.Count != 0)
+                    Entries.Clear();
+                foreach (var item in DataAccess.FindEntries(date))
                 {
                     Entries.Add(item);
                 }
@@ -252,15 +285,19 @@ namespace Assistant.ViewModel
                 Statys = "Данные обновлены";
                 TypeServices = new ReadOnlyObservableCollection<TypeService>(new ObservableCollection<TypeService>(DataAccess.GetTypeService));
                 Patients = new ObservableCollection<Patient>(DataAccess.GetPatient);
+                Entries = new ObservableCollection<Entry>(DataAccess.GetEntries);
+                Services = new ObservableCollection<Service>();
+                EntryCreate = new CreateEntry();
+                EntryCreate.ClearData();
+                FindEntry = DateTime.UtcNow;
             }
         }
         #endregion
     }
 
-    /*
-     * Класс для создания записи из данных с формы
-     * и валидации данных
-     */
+/// <summary>
+///  Класс для создания записи из данных с формы и валидации данных
+/// </summary>
     class CreateEntry : MainViewModel
     {
         private DateTime _dateReg;
@@ -292,15 +329,22 @@ namespace Assistant.ViewModel
             set
             {
                 _time = value;
-                if(_time != string.Empty && _time.Length == 5)
+                if(_time != string.Empty)
                 {
-                    if (char.IsDigit(_time[0]) && char.IsDigit(_time[1]) && char.IsDigit(_time[3]) && char.IsDigit(_time[4]))
+                    if (char.IsDigit(_time[0]) && char.IsDigit(_time[2]) && char.IsDigit(_time[3]) && _time.Length == 4)
+                    {
+                        char separator = _time[1];
+                        if (_time[1] != ':')
+                            _time = _time.Replace(separator, ':');
+                    }
+                    else if ((char.IsDigit(_time[0]) && char.IsDigit(_time[1]) && char.IsDigit(_time[3]) && char.IsDigit(_time[4])) && _time.Length == 5)
                     {
                         char separator = _time[2];
                         if (_time[2] != ':')
                             _time = _time.Replace(separator, ':');
-                        DateRegistration = DateRegistration.Add(TimeSpan.Parse(_time));
                     }
+                    DateRegistration = DateRegistration.Date;
+                    DateRegistration = DateRegistration.Add(TimeSpan.Parse(_time)).ToUniversalTime();
                 }
                 OnChanged(nameof(Timepick));
             }

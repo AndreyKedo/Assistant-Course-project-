@@ -11,6 +11,6 @@ namespace Core.Interface
     {
         List<Entry> GetEntries { get; }
         List<Patient> GetPatient { get; }
-        Task<bool> UploadEntry(uint idDoc);
+        Task<bool> UploadEntryForDoctor(uint idDoc);
     }
 }

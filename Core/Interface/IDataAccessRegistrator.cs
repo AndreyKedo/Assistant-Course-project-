@@ -12,8 +12,10 @@ namespace Core.Interface
         List<TypeService> GetTypeService { get; }
         Task AddEntry(Entry entry);
         Task AddEntry(Entry entry, uint idPatient);
+        Task<string> GetPatientReport();
+        Task<string> GetServiceOfDoctorReport();
         Task<bool> UploadData();
-        IEnumerable<Entry> FindEnties(DateTime date);
+        IEnumerable<Entry> FindEntries(DateTime date);
         IEnumerable<Patient> FindPatient(string fio);
     }
 }

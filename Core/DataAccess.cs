@@ -63,21 +63,23 @@ namespace Core
             return isUpdate;
         }
 
-        public async Task<bool> UploadEntry(uint idDoc)
+        public async Task<bool> UploadEntryForDoctor(uint idDoc)
         {
             bool isUpdate = false;
             if (GetEntries.Count != 0)
             {
                 GetEntries.Clear();
-                string selectEntryQuery = "SELECT r.id, r.fio, e.data_registration, p.id, p.l_name, p.f_name, p.t_name, " +
+                string selectEntryQuery = "SELECT r.id, r.fio, e.date_registration, p.id, p.l_name, p.f_name, p.t_name, " +
                     "p.sex, p.birthday, p.address, p.phone_number, " +
                     "s.id, s.lable, s.price, s.action_service FROM entry AS e " +
                     "JOIN registrator AS r ON r.id = e.id_registrator " +
                     "JOIN patient AS p ON p.id = e.id_patient " +
                     "JOIN service AS s ON s.id = e.id_service " +
-                    "WHERE e.id_doctor = @idDoc";
+                    "WHERE e.id_doctor = @idDoc AND e.date_registration > LAST_DAY(CURDATE()) + INTERVAL 1 DAY - INTERVAL 1 MONTH AND " +
+                    "e.date_registration < DATE_ADD(LAST_DAY(CURDATE()), INTERVAL 1 DAY)";
                 using (MySqlCommand command = new MySqlCommand(selectEntryQuery, connect.GetConnect))
                 {
+                    command.Parameters.AddWithValue("@idDoc", idDoc);
                     using (DbDataReader reader = await command.ExecuteReaderAsync())
                     {
                         if (reader.HasRows)
@@ -135,12 +137,12 @@ namespace Core
                     await command.ExecuteNonQueryAsync();
                 }
 
-                string insertEntryQuery = "INSERT INTO entry(id_registrator, data_registration, id_patient, id_doctor, id_service) " +
-                    "VALUES( @idReg, @dataReg, (SELECT id FROM patient WHERE l_name = @lName AND f_name = @fName AND t_name = @tName), @idDoc, @idServ );";
+                string insertEntryQuery = "INSERT INTO entry(id_registrator, date_registration, id_patient, id_doctor, id_service) " +
+                    "VALUES( @idReg, @dateReg, (SELECT id FROM patient WHERE l_name = @lName AND f_name = @fName AND t_name = @tName), @idDoc, @idServ );";
                 using (MySqlCommand command = new MySqlCommand(insertEntryQuery, connect.GetConnect))
                 {
                     command.Parameters.AddWithValue("@idReg", entry.RegistratorEntry.Id);
-                    command.Parameters.AddWithValue("@dataReg", entry.DateRegistration);
+                    command.Parameters.AddWithValue("@dateReg", entry.DateRegistration.ToUniversalTime());
                     command.Parameters.AddWithValue("@idPati", entry.PatientEntry.Id);
                     command.Parameters.AddWithValue("@idDoc", entry.DoctorEntry.Id);
                     command.Parameters.AddWithValue("@idServ", entry.ServiceEntry.Id);
@@ -160,12 +162,13 @@ namespace Core
         {
             if (connect.IsConnect())
             {
-                string insertEntryQuery = "INSERT INTO entry(id_registrator, data_registration, id_patient, id_doctor, id_service) " +
-                    "VALUES( @idReg, @dataReg, @idPati, @idDoc, @idServ );";
+                string insertEntryQuery = "INSERT INTO entry(id_registrator, date_registration, id_patient, id_doctor, id_service) " +
+                    "VALUES( @idReg, @dateReg, @idPati, @idDoc, @idServ );";
                 using (MySqlCommand command = new MySqlCommand(insertEntryQuery, connect.GetConnect))
                 {
+                    DateTime t = entry.DateRegistration.ToUniversalTime();
                     command.Parameters.AddWithValue("@idReg", entry.RegistratorEntry.Id);
-                    command.Parameters.AddWithValue("@dataReg", entry.DateRegistration);
+                    command.Parameters.AddWithValue("@dateReg", t);
                     command.Parameters.AddWithValue("@idPati", idPatient);
                     command.Parameters.AddWithValue("@idDoc", entry.DoctorEntry.Id);
                     command.Parameters.AddWithValue("@idServ", entry.ServiceEntry.Id);
@@ -178,11 +181,10 @@ namespace Core
             await UploadPatient();
         }
 
-        public IEnumerable<Entry> FindEnties(System.DateTime date)
+        public IEnumerable<Entry> FindEntries(System.DateTime date)
         {
             IEnumerable<Entry> entries = from entry in GetEntries
-                                         where entry.DateRegistration.Date == date.Date
-                                         orderby entry
+                                         where entry.DateRegistration.Day == date.Day
                                          select entry;
             return entries;
         }
@@ -208,6 +210,74 @@ namespace Core
                                             select patient;
             return patients;
         }
+
+        public async Task<string> GetPatientReport()
+        {
+            string buffer = string.Empty;
+            if (connect.IsConnect())
+            {
+                string selectServiceOfPatientQuery = "SELECT p.l_name, p.f_name, p.t_name, date_registration, lable, price FROM entry AS e " +
+                    "JOIN patient AS p ON p.id = e.id_patient " +
+                    "JOIN service AS s ON s.id = e.id_service " +
+                    "WHERE e.date_registration > LAST_DAY(CURDATE()) + INTERVAL 1 DAY - INTERVAL 1 MONTH AND " +
+                    "e.date_registration<DATE_ADD(LAST_DAY(CURDATE()), INTERVAL 1 DAY)";
+                using(MySqlCommand command = new MySqlCommand(selectServiceOfPatientQuery, connect.GetConnect))
+                {
+                    using(DbDataReader reader = await command.ExecuteReaderAsync())
+                    {
+                        if (reader.HasRows)
+                        {
+                            while (await reader.ReadAsync())
+                            {
+                                buffer += reader.GetString(0) + ' ' + reader.GetString(1) + ' ' + reader.GetString(2) +
+                                    ' ' + reader.GetString(3) + ' ' + reader.GetString(4) + ' ' + reader.GetString(5) + '\n';
+                            }
+                        }
+                        else
+                        {
+                            buffer = "Нет записей для формирования отчёта";
+                        }
+                        reader.Close();
+                    }
+                }
+                connect.Close();
+            }
+            return buffer;
+        }
+
+        public async Task<string> GetServiceOfDoctorReport()
+        {
+            string buffer = string.Empty;
+            if (connect.IsConnect())
+            {
+                string selectServiceOfDoctorQuery = "SELECT d.fio, s.lable, e.date_registration FROM entry AS e " +
+                    "JOIN doctor AS d ON d.id = e.id_doctor " +
+                    "JOIN service AS s ON s.id = e.id_service " +
+                    "WHERE e.date_registration > LAST_DAY(CURDATE()) + INTERVAL 1 DAY - INTERVAL 1 MONTH AND " +
+                    "e.date_registration < DATE_ADD(LAST_DAY(CURDATE()), INTERVAL 1 DAY)";
+                using (MySqlCommand command = new MySqlCommand(selectServiceOfDoctorQuery, connect.GetConnect))
+                {
+                    using (DbDataReader reader = await command.ExecuteReaderAsync())
+                    {
+                        if (reader.HasRows)
+                        {
+                            while (await reader.ReadAsync())
+                            {
+                                buffer += reader.GetString(0) + ' ' + reader.GetString(1) + ' ' + reader.GetString(2) + '\n';
+                            }
+                        }
+                        else
+                        {
+                            buffer = "Нет записей для формирования отчёта";
+                        }
+                        reader.Close();
+                    }
+                }
+                connect.Close();
+            }
+            return buffer;
+        }
+
 
         private Dictionary<Service, Doctor> GetDoctorOfService(uint idType)
         {
@@ -294,13 +364,15 @@ namespace Core
                 if (GetEntries.Count != 0)
                     GetEntries.Clear();
 
-                string selectEntryQuery = "SELECT r.id, r.fio, e.data_registration, p.id, p.l_name, p.f_name, p.t_name, " +
+                string selectEntryQuery = "SELECT r.id, r.fio, e.date_registration, p.id, p.l_name, p.f_name, p.t_name, " +
                     "p.sex, p.birthday, p.address, p.phone_number, d.id, d.fio, d.cabinet_number, " +
                     "d.specialization, s.id, s.lable, s.price, s.action_service FROM entry AS e " +
                     "JOIN registrator AS r ON r.id = e.id_registrator " +
                     "JOIN patient AS p ON p.id = e.id_patient " +
                     "JOIN doctor AS d ON d.id = e.id_doctor " +
-                    "JOIN service AS s ON s.id = e.id_service";
+                    "JOIN service AS s ON s.id = e.id_service " +
+                    "WHERE e.date_registration > LAST_DAY(CURDATE()) + INTERVAL 1 DAY - INTERVAL 1 MONTH AND " +
+                    "e.date_registration<DATE_ADD(LAST_DAY(CURDATE()), INTERVAL 1 DAY)";
                 using (MySqlCommand command = new MySqlCommand(selectEntryQuery, connect.GetConnect))
                 {
                     using (DbDataReader reader = await command.ExecuteReaderAsync())
@@ -313,7 +385,7 @@ namespace Core
                                 GetEntries.Add(new Entry()
                                 {
                                     RegistratorEntry = new Registrator() { Id = await reader.GetFieldValueAsync<uint>(0), Fio = reader.GetString(1) },
-                                    DateRegistration = reader.GetDateTime(2),
+                                    DateRegistration = reader.GetDateTime(2).ToLocalTime(),
                                     PatientEntry = new Patient()
                                     {
                                         Id = await reader.GetFieldValueAsync<uint>(3),
@@ -321,7 +393,7 @@ namespace Core
                                         FirstName = reader.GetString(5),
                                         ThridName = reader.GetString(6),
                                         Sex = reader.GetString(7),
-                                        Birthday = reader.GetDateTime(8),
+                                        Birthday = reader.GetDateTime(8).ToUniversalTime(),
                                         Address = reader.GetString(9),
                                         PhoneNumber = reader.GetString(10)
                                     },

@@ -2,19 +2,23 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:System="clr-namespace:System;assembly=mscorlib"
-             mc:Ignorable="d" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:local="clr-namespace:Assistant.ViewModel"
+             mc:Ignorable="d"
              d:DesignHeight="450" d:DesignWidth="980">
 
     <UserControl.Resources>
         <ResourceDictionary Source="/Resources/RegistratorUCResources.xaml" />
     </UserControl.Resources>
-    
+
     <DockPanel>
-        <UniformGrid Height="30" DockPanel.Dock="Top" Columns="3" >
+        <DockPanel.Resources>
+            <local:BindingContextMenu x:Key="Proxy" Proxy="{Binding}" />
+        </DockPanel.Resources>
+        <UniformGrid Height="30" DockPanel.Dock="Top" Columns="4" >
             <TextBlock Text="{Binding Statys, Mode=OneWay}" />
             <CheckBox x:Name="CheckHide" Content="Показать список клиентов" Margin="7" IsChecked="True" />
+            <Button Content="Отчёт услуги по специалистам" Width="172" Command="{Binding ReportService}" />
             <Button Grid.Row="1" Grid.Column="2"
                     Style="{StaticResource WriteButton}"
                     Content="Записать" Command="{Binding WriteEntry}"/>
@@ -55,16 +59,24 @@
             
             <!--Список клиентов-->
             <ListBox Grid.Column="1" Grid.Row="1" Style="{StaticResource HideList}" ItemsSource="{Binding Patients, Mode=OneWay}"
-                     SelectedItem="{Binding SelectPatient}">
+                     SelectedItem="{Binding SelectPatient, Mode=OneWayToSource}">
                 <ListBox.ItemTemplate>
                     <DataTemplate>
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="{Binding LastName, Mode=OneWay}" /><!--Фамилия-->
-                            <TextBlock Text="{Binding FirstName, Mode=OneWay}" Margin="2,0,2,0"/><!--Имя-->
-                            <TextBlock Text="{Binding ThridName, Mode=OneWay}"/><!--Отчество-->
+                            <TextBlock Text="{Binding LastName, Mode=OneWay}" />
+                            <!--Фамилия-->
+                            <TextBlock Text="{Binding FirstName, Mode=OneWay}" Margin="2,0,2,0"/>
+                            <!--Имя-->
+                            <TextBlock Text="{Binding ThridName, Mode=OneWay}"/>
+                            <!--Отчество-->
                         </StackPanel>
                     </DataTemplate>
                 </ListBox.ItemTemplate>
+                <ListBox.ContextMenu>
+                    <ContextMenu>
+                        <MenuItem Header="Список услуг" Command="{Binding Source={StaticResource Proxy}, Path=Proxy.ReportCommand}" CommandParameter="{Binding SelectPatient}" />
+                    </ContextMenu>
+                </ListBox.ContextMenu>
             </ListBox>
         </Grid>
         
