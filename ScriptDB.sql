@@ -130,7 +130,7 @@ CREATE TABLE service_of_doctor(
 CREATE TABLE entry (
 	id INT UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT,
     id_registrator INT UNSIGNED NOT NULL REFERENCES registrator (id),
-    data_registration DATETIME NOT NULL,
+    date_registration DATETIME NOT NULL,
     id_patient INT UNSIGNED NOT NULL REFERENCES patient (id),
     id_doctor INT UNSIGNED NOT NULL REFERENCES doctor (id),
     id_service INT UNSIGNED NOT NULL REFERENCES service (id)
