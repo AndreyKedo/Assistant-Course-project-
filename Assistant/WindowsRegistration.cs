@@ -1,5 +1,4 @@
 ﻿using Core;
-using Core.Interface;
 using System.Collections.Generic;
 using System.Windows.Controls;
 using Assistant.Interface;
@@ -24,7 +23,7 @@ namespace Assistant
             ContextData.Add(group, vm);
         }
 
-        public void SpawnWindow(Group group, IEmployees employees)
+        public void SpawnWindow(Group group)
         {
             IViewModel vm;
             if (group.Equals(Group.Registrator))
@@ -32,7 +31,6 @@ namespace Assistant
                 CurrentWindow.Title = "Assistant: Регистратура";
                 if(ContextData.TryGetValue(group, out vm))
                 {
-                    vm.Employees = employees;
                     CurrentWindow.DataContext = vm;
                 }
             }else if (group.Equals(Group.Doctor))
@@ -40,7 +38,6 @@ namespace Assistant
                 CurrentWindow.Title = "Assistant: Специалист";
                 if (ContextData.TryGetValue(group, out vm))
                 {
-                    vm.Employees = employees;
                     CurrentWindow.DataContext = vm;
                 }
             }

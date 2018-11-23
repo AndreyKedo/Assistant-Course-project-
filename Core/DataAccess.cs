@@ -66,17 +66,16 @@ namespace Core
         public async Task<bool> UploadEntryForDoctor(uint idDoc)
         {
             bool isUpdate = false;
-            if (GetEntries.Count != 0)
+            if (connect.IsConnect())
             {
-                GetEntries.Clear();
                 string selectEntryQuery = "SELECT r.id, r.fio, e.date_registration, p.id, p.l_name, p.f_name, p.t_name, " +
-                    "p.sex, p.birthday, p.address, p.phone_number, " +
-                    "s.id, s.lable, s.price, s.action_service FROM entry AS e " +
-                    "JOIN registrator AS r ON r.id = e.id_registrator " +
-                    "JOIN patient AS p ON p.id = e.id_patient " +
-                    "JOIN service AS s ON s.id = e.id_service " +
-                    "WHERE e.id_doctor = @idDoc AND e.date_registration > LAST_DAY(CURDATE()) + INTERVAL 1 DAY - INTERVAL 1 MONTH AND " +
-                    "e.date_registration < DATE_ADD(LAST_DAY(CURDATE()), INTERVAL 1 DAY)";
+                "p.sex, p.birthday, p.address, p.phone_number, " +
+                "s.id, s.lable, s.price, s.action_service FROM entry AS e " +
+                "JOIN registrator AS r ON r.id = e.id_registrator " +
+                "JOIN patient AS p ON p.id = e.id_patient " +
+                "JOIN service AS s ON s.id = e.id_service " +
+                "WHERE e.id_doctor = @idDoc AND e.date_registration > LAST_DAY(CURDATE()) + INTERVAL 1 DAY - INTERVAL 1 MONTH AND " +
+                "e.date_registration < DATE_ADD(LAST_DAY(CURDATE()), INTERVAL 1 DAY)";
                 using (MySqlCommand command = new MySqlCommand(selectEntryQuery, connect.GetConnect))
                 {
                     command.Parameters.AddWithValue("@idDoc", idDoc);
@@ -87,37 +86,58 @@ namespace Core
                             isUpdate = true;
                             while (await reader.ReadAsync())
                             {
-                                GetEntries.Add(new Entry()
+                                if (reader.GetDateTime(2).Date == DateTime.Now.Date)
                                 {
-                                    RegistratorEntry = new Registrator() { Id = await reader.GetFieldValueAsync<uint>(0), Fio = reader.GetString(1) },
-                                    DateRegistration = reader.GetDateTime(2),
-                                    PatientEntry = new Patient()
+                                    GetEntries.Add(new Entry()
                                     {
-                                        Id = await reader.GetFieldValueAsync<uint>(3),
-                                        LastName = reader.GetString(4),
-                                        FirstName = reader.GetString(5),
-                                        ThridName = reader.GetString(6),
-                                        Sex = reader.GetString(7),
-                                        Birthday = reader.GetDateTime(8),
-                                        Address = reader.GetString(9),
-                                        PhoneNumber = reader.GetString(10)
-                                    },
-                                    ServiceEntry = new Service()
-                                    {
-                                        Id = await reader.GetFieldValueAsync<uint>(15),
-                                        Lable = reader.GetString(16),
-                                        Price = await reader.GetFieldValueAsync<uint>(17),
-                                        Action = reader.GetString(18)
-                                    }
-                                });
+                                        RegistratorEntry = new Registrator() { Id = await reader.GetFieldValueAsync<uint>(0), Fio = reader.GetString(1) },
+                                        DateRegistration = reader.GetDateTime(2),
+                                        PatientEntry = new Patient()
+                                        {
+                                            Id = await reader.GetFieldValueAsync<uint>(3),
+                                            LastName = reader.GetString(4),
+                                            FirstName = reader.GetString(5),
+                                            ThridName = reader.GetString(6),
+                                            Sex = reader.GetString(7),
+                                            Birthday = reader.GetDateTime(8),
+                                            Address = reader.GetString(9),
+                                            PhoneNumber = reader.GetString(10)
+                                        },
+                                        ServiceEntry = new Service()
+                                        {
+                                            Id = await reader.GetFieldValueAsync<uint>(11),
+                                            Lable = reader.GetString(12),
+                                            Price = await reader.GetFieldValueAsync<uint>(13),
+                                            Action = reader.GetString(14)
+                                        }
+                                    });
+                                }
                             }
                         }
                         reader.Close();
                     }
                 }
+
+                connect.Close();
             }
             return isUpdate;
         }
+
+        public IEnumerable<Entry> GetEntriesOfCurrDay()
+        {
+            IEnumerable<Entry> entries = from item in GetEntries
+                                         where item.DateRegistration.Date == DateTime.Now.Date
+                                         select item;
+            return entries;
+        }
+
+        public IEnumerable<Entry> GetEntriesOfBack()
+        {
+            IEnumerable<Entry> entries = from item in GetEntries
+                                         where item.DateRegistration.Date < DateTime.Now.Date
+                                         select item;
+            return entries;
+         }
 
         public async Task AddEntry(Entry entry)
         {
@@ -142,7 +162,7 @@ namespace Core
                 using (MySqlCommand command = new MySqlCommand(insertEntryQuery, connect.GetConnect))
                 {
                     command.Parameters.AddWithValue("@idReg", entry.RegistratorEntry.Id);
-                    command.Parameters.AddWithValue("@dateReg", entry.DateRegistration.ToUniversalTime());
+                    command.Parameters.AddWithValue("@dateReg", entry.DateRegistration);
                     command.Parameters.AddWithValue("@idPati", entry.PatientEntry.Id);
                     command.Parameters.AddWithValue("@idDoc", entry.DoctorEntry.Id);
                     command.Parameters.AddWithValue("@idServ", entry.ServiceEntry.Id);
@@ -166,7 +186,7 @@ namespace Core
                     "VALUES( @idReg, @dateReg, @idPati, @idDoc, @idServ );";
                 using (MySqlCommand command = new MySqlCommand(insertEntryQuery, connect.GetConnect))
                 {
-                    DateTime t = entry.DateRegistration.ToUniversalTime();
+                    DateTime t = entry.DateRegistration;
                     command.Parameters.AddWithValue("@idReg", entry.RegistratorEntry.Id);
                     command.Parameters.AddWithValue("@dateReg", t);
                     command.Parameters.AddWithValue("@idPati", idPatient);
@@ -278,7 +298,6 @@ namespace Core
             return buffer;
         }
 
-
         private Dictionary<Service, Doctor> GetDoctorOfService(uint idType)
         {
             Dictionary<Service, Doctor> buffer = new Dictionary<Service, Doctor>();
@@ -385,7 +404,7 @@ namespace Core
                                 GetEntries.Add(new Entry()
                                 {
                                     RegistratorEntry = new Registrator() { Id = await reader.GetFieldValueAsync<uint>(0), Fio = reader.GetString(1) },
-                                    DateRegistration = reader.GetDateTime(2).ToLocalTime(),
+                                    DateRegistration = reader.GetDateTime(2),
                                     PatientEntry = new Patient()
                                     {
                                         Id = await reader.GetFieldValueAsync<uint>(3),

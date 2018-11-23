@@ -30,9 +30,6 @@ namespace Assistant
             _initApp.ConnectApp.ConnectionErrorEvent += _initApp.ErrorMessage;
             _initApp.AuthVM = new AuthViewModel(_initApp.ConnectApp);
             _initApp.AuthVM.ConnectionEvent += _initApp.CreateMainWindow;
-            //регистрация контекста окна
-            _initApp.registration.RegistrationContext(Group.Registrator,new EmployeeRegVM(new DataAccess(_initApp.ConnectApp)), new RegistratorUC());
-            _initApp.registration.RegistrationContext(Group.Doctor, new EmployeeDocVM(new DataAccess(_initApp.ConnectApp)), new DoctorUC());
             return _initApp;
         }
 
@@ -44,9 +41,17 @@ namespace Assistant
 
         private void CreateMainWindow(IEmployees employees, Group group)
         {
+            if (group.Equals(Group.Doctor))
+            {
+                registration.RegistrationContext(Group.Doctor, new EmployeeDocVM(new DataAccess(ConnectApp), employees), new DoctorUC());
+            }else if (group.Equals(Group.Registrator))
+            {
+                registration.RegistrationContext(Group.Registrator, new EmployeeRegVM(new DataAccess(ConnectApp), employees), new RegistratorUC());
+            }
+
             try
             {
-                registration.SpawnWindow(group, employees);
+                registration.SpawnWindow(group);
                 AuthWindow.Close();
             }
             catch (Exception ex)

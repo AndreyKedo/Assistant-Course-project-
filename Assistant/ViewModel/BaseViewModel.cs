@@ -17,6 +17,11 @@ namespace Assistant.ViewModel
             }
         }
 
+        public BaseViewModel(IEmployees employees)
+        {
+            Employees = employees;
+        }
+
         private UserControl _control;
         public UserControl CurrentContent
         {

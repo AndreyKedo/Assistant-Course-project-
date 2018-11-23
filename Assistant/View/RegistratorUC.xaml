@@ -15,14 +15,18 @@
         <DockPanel.Resources>
             <local:BindingContextMenu x:Key="Proxy" Proxy="{Binding}" />
         </DockPanel.Resources>
-        <UniformGrid Height="30" DockPanel.Dock="Top" Columns="4" >
-            <TextBlock Text="{Binding Statys, Mode=OneWay}" />
-            <CheckBox x:Name="CheckHide" Content="Показать список клиентов" Margin="7" IsChecked="True" />
-            <Button Content="Отчёт услуги по специалистам" Width="172" Command="{Binding ReportService}" />
-            <Button Grid.Row="1" Grid.Column="2"
+        <Grid Height="30" DockPanel.Dock="Top">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition Width="190"/>
+                <ColumnDefinition Width="90"/>
+            </Grid.ColumnDefinitions>
+            <CheckBox x:Name="CheckHide" Grid.Column="0" Content="Показать список клиентов" Margin="7" IsChecked="True" />
+            <Button Grid.Column="1" Content="Отчёт услуги по специалистам" Width="172" Command="{Binding ReportService}" />
+            <Button Grid.Column="2"
                     Style="{StaticResource WriteButton}"
                     Content="Записать" Command="{Binding WriteEntry}"/>
-        </UniformGrid>
+        </Grid>
 
         <Grid DockPanel.Dock="Left">
             <Grid.ColumnDefinitions>

@@ -16,17 +16,6 @@ namespace Assistant.ViewModel
     class EmployeeRegVM : BaseViewModel, IViewModel
     {
         readonly IDataAccessRegistrator DataAccess;
-        //статус доступа
-        private string _statys;
-        public string Statys
-        {
-            get => _statys;
-            set
-            {
-                _statys = value;
-                OnChanged(nameof(Statys));
-            }
-        }
         //Объект порождающий записи
         private CreateEntry _entry;
         public CreateEntry EntryCreate
@@ -39,7 +28,7 @@ namespace Assistant.ViewModel
             }
         }
 
-        public EmployeeRegVM(IDataAccessRegistrator dataAccess)
+        public EmployeeRegVM(IDataAccessRegistrator dataAccess, IEmployees employees) : base(employees)
         {
             DataAccess = dataAccess;
             Update();
@@ -167,7 +156,7 @@ namespace Assistant.ViewModel
                     }
                 }else if(DataAccess.GetPatient.Count != 0)
                 {
-                    GetEntriesToDate(DateTime.UtcNow);
+                    GetEntriesToDate(DateTime.Now);
                 }
                 OnChanged(nameof(FindPatient));
             }
@@ -227,7 +216,7 @@ namespace Assistant.ViewModel
                 SectedType = null;
                 Doc = null;
                 EntryCreate.ClearData();
-                GetEntriesToDate(DateTime.UtcNow);
+                GetEntriesToDate(DateTime.Now);
             },(obj)=> 
             {
                 return EntryCreate.ValidationData() && SelectedService != null;
@@ -282,7 +271,6 @@ namespace Assistant.ViewModel
         {
             if (await DataAccess.UploadData())
             {
-                Statys = "Данные обновлены";
                 TypeServices = new ReadOnlyObservableCollection<TypeService>(new ObservableCollection<TypeService>(DataAccess.GetTypeService));
                 Patients = new ObservableCollection<Patient>(DataAccess.GetPatient);
                 Entries = new ObservableCollection<Entry>(DataAccess.GetEntries);
@@ -344,7 +332,7 @@ namespace Assistant.ViewModel
                             _time = _time.Replace(separator, ':');
                     }
                     DateRegistration = DateRegistration.Date;
-                    DateRegistration = DateRegistration.Add(TimeSpan.Parse(_time)).ToUniversalTime();
+                    DateRegistration = DateRegistration.Add(TimeSpan.Parse(_time + ":00"));
                 }
                 OnChanged(nameof(Timepick));
             }
@@ -425,8 +413,8 @@ namespace Assistant.ViewModel
             Address = string.Empty;
             PhoneNumber = string.Empty;
             Timepick = string.Empty;
-            DateRegistration = DateTime.UtcNow;
-            Birthday = DateTime.UtcNow;
+            DateRegistration = DateTime.Now;
+            Birthday = DateTime.Now;
         }
 
         public bool ValidationData()

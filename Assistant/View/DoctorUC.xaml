@@ -3,10 +3,62 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:local="clr-namespace:Assistant.View"
+             xmlns:rb="clr-namespace:Assistant.ViewModel"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
-    <Grid>
-            
-    </Grid>
+    <DockPanel>
+        <UniformGrid DockPanel.Dock="Top" Height="30" Columns="2" >
+            <UniformGrid.Resources>
+                <rb:RadioBoolToIntConverter x:Key="RadioButtonConvert"/>
+            </UniformGrid.Resources>
+            <RadioButton Grid.Column="0" GroupName="Mode" HorizontalAlignment="Left"
+                         IsChecked="{Binding Path=IsSuccess, Converter={StaticResource RadioButtonConvert}, ConverterParameter=0, Mode=TwoWay}" 
+                         Content="Записи на сегодня" />
+            <RadioButton Grid.Column="1" GroupName="Mode" HorizontalAlignment="Left"
+                         IsChecked="{Binding Path=IsSuccess, Converter={StaticResource RadioButtonConvert}, ConverterParameter=1, Mode=TwoWay}"
+                         Content="Записи с начала месяца по сегодня"/>
+        </UniformGrid>
+        <Grid DockPanel.Dock="Bottom" >
+            <ListView ItemsSource="{Binding EntrySource, Mode=OneWay}">
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <Grid Margin="3" >
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="auto" />
+                                <RowDefinition Height="auto" />
+                                <RowDefinition Height="auto" />
+                                <RowDefinition Height="auto" />
+                            </Grid.RowDefinitions>
+                            <TextBlock Grid.Row="0" FontSize="16" Text="{Binding StringFormat=Дата регистрации: {0}, Path=DateRegistrationStr}" />
+                            <Grid Grid.Row="1">
+                                <Expander DataContext="{Binding PatientEntry}" BorderBrush="Silver" BorderThickness="2" Padding="3" >
+                                    <Expander.Header>
+                                        <TextBlock FontSize="20" Text="Информация о клиенте"/>
+                                    </Expander.Header>
+                                    <UniformGrid Rows="4" >
+                                        <TextBlock FontSize="16" Text="{Binding StringFormat=Фамилия: {0}, Path=LastName, Mode=OneWay}" />
+                                        <TextBlock FontSize="16" Text="{Binding StringFormat=Имя: {0}, Path=FirstName, Mode=OneWay}" />
+                                        <TextBlock FontSize="16" Text="{Binding StringFormat=Отчество: {0}, Path=ThridName, Mode=OneWay}" />
+                                        <TextBlock FontSize="16" Text="{Binding StringFormat=Дата рождения: {0}, Path=Birthday, Mode=OneWay}" />
+                                    </UniformGrid>
+                                </Expander>
+                            </Grid>
+                            <UniformGrid  Grid.Row="2" Rows="2" DataContext="{Binding ServiceEntry, Mode=OneWay}" >
+                                <TextBlock FontSize="14" Text="{Binding StringFormat=Услуга: {0}, Path=Lable, Mode=OneWay}"/>
+                                <TextBlock FontSize="14" Text="{Binding StringFormat=Цена: {0} рублей., Path=Price, Mode=OneWay}"/>
+                            </UniformGrid>
+                            <Button Grid.Row="3" Height="20" Width="150" HorizontalAlignment="Right" Content="Отметить как прошёдший" 
+                                    Command="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type UserControl}}, Path=DataContext.DeleteCom}" 
+                                    CommandParameter="{Binding}" />
+                        </Grid>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+                <ListView.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel/>
+                    </ItemsPanelTemplate>
+                </ListView.ItemsPanel>
+            </ListView>
+        </Grid>
+    </DockPanel>
 </UserControl>
