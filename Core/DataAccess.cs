@@ -158,17 +158,13 @@ namespace Core
                 }
 
                 string insertEntryQuery = "INSERT INTO entry(id_registrator, date_registration, id_patient, id_doctor, id_service) " +
-                    "VALUES( @idReg, @dateReg, (SELECT id FROM patient WHERE l_name = @lName AND f_name = @fName AND t_name = @tName), @idDoc, @idServ );";
+                    "VALUES( @idReg, @dateReg, (SELECT id FROM patient WHERE id=LAST_INSERT_ID()), @idDoc, @idServ );";
                 using (MySqlCommand command = new MySqlCommand(insertEntryQuery, connect.GetConnect))
                 {
                     command.Parameters.AddWithValue("@idReg", entry.RegistratorEntry.Id);
                     command.Parameters.AddWithValue("@dateReg", entry.DateRegistration);
-                    command.Parameters.AddWithValue("@idPati", entry.PatientEntry.Id);
                     command.Parameters.AddWithValue("@idDoc", entry.DoctorEntry.Id);
                     command.Parameters.AddWithValue("@idServ", entry.ServiceEntry.Id);
-                    command.Parameters.AddWithValue("@lName", entry.PatientEntry.LastName);
-                    command.Parameters.AddWithValue("@fName", entry.PatientEntry.FirstName);
-                    command.Parameters.AddWithValue("@tName", entry.PatientEntry.ThridName);
                     await command.ExecuteNonQueryAsync();
                 }
                 connect.Close();
@@ -239,8 +235,7 @@ namespace Core
                 string selectServiceOfPatientQuery = "SELECT p.l_name, p.f_name, p.t_name, date_registration, lable, price FROM entry AS e " +
                     "JOIN patient AS p ON p.id = e.id_patient " +
                     "JOIN service AS s ON s.id = e.id_service " +
-                    "WHERE e.date_registration > LAST_DAY(CURDATE()) + INTERVAL 1 DAY - INTERVAL 1 MONTH AND " +
-                    "e.date_registration<DATE_ADD(LAST_DAY(CURDATE()), INTERVAL 1 DAY)";
+                    "WHERE e.date_registration > LAST_DAY(CURDATE()) + INTERVAL 1 DAY - INTERVAL 1 MONTH";
                 using(MySqlCommand command = new MySqlCommand(selectServiceOfPatientQuery, connect.GetConnect))
                 {
                     using(DbDataReader reader = await command.ExecuteReaderAsync())
@@ -273,8 +268,7 @@ namespace Core
                 string selectServiceOfDoctorQuery = "SELECT d.fio, s.lable, e.date_registration FROM entry AS e " +
                     "JOIN doctor AS d ON d.id = e.id_doctor " +
                     "JOIN service AS s ON s.id = e.id_service " +
-                    "WHERE e.date_registration > LAST_DAY(CURDATE()) + INTERVAL 1 DAY - INTERVAL 1 MONTH AND " +
-                    "e.date_registration < DATE_ADD(LAST_DAY(CURDATE()), INTERVAL 1 DAY)";
+                    "WHERE e.date_registration > LAST_DAY(CURDATE()) + INTERVAL 1 DAY - INTERVAL 1 MONTH";
                 using (MySqlCommand command = new MySqlCommand(selectServiceOfDoctorQuery, connect.GetConnect))
                 {
                     using (DbDataReader reader = await command.ExecuteReaderAsync())

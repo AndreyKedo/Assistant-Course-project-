@@ -70,7 +70,7 @@ CREATE TABLE patient(
     sex CHAR(3) NOT NULL,
     birthday DATE NOT NULL,
     address VARCHAR(45) NULL,
-    phone_number VARCHAR(45) NULL
+    phone_number VARCHAR(11) NULL
 );
 
 /*
@@ -208,7 +208,7 @@ VALUES
 INSERT INTO `paid_hospital_db`.`type_service`
 (`type_label`)
 VALUES
-('Ренгенологические исследования');
+('Рентгенологические исследования');
 
 INSERT INTO `paid_hospital_db`.`type_service`
 (`type_label`)
@@ -1014,7 +1014,7 @@ INSERT INTO `paid_hospital_db`.`service`
 VALUES
 ('Рентгенография любой конечности',
 488,
-(SELECT id FROM type_service WHERE type_label = 'Ренгенологические исследования'),
+(SELECT id FROM type_service WHERE type_label = 'Рентгенологические исследования'),
 'Исследование');
 
 INSERT INTO `paid_hospital_db`.`service_of_doctor`
@@ -1032,7 +1032,7 @@ INSERT INTO `paid_hospital_db`.`service`
 VALUES
 ('Рентгенография легких',
 488,
-(SELECT id FROM type_service WHERE type_label = 'Ренгенологические исследования'),
+(SELECT id FROM type_service WHERE type_label = 'Рентгенологические исследования'),
 'Исследование');
 
 INSERT INTO `paid_hospital_db`.`service_of_doctor`
@@ -1050,7 +1050,7 @@ INSERT INTO `paid_hospital_db`.`service`
 VALUES
 ('Компьютерная томография грудной аорты',
 12863,
-(SELECT id FROM type_service WHERE type_label = 'Ренгенологические исследования'),
+(SELECT id FROM type_service WHERE type_label = 'Рентгенологические исследования'),
 'Исследование');
 
 INSERT INTO `paid_hospital_db`.`service_of_doctor`
@@ -1068,7 +1068,7 @@ INSERT INTO `paid_hospital_db`.`service`
 VALUES
 ('Компьютерная томография головы',
 2678,
-(SELECT id FROM type_service WHERE type_label = 'Ренгенологические исследования'),
+(SELECT id FROM type_service WHERE type_label = 'Рентгенологические исследования'),
 'Исследование');
 
 INSERT INTO `paid_hospital_db`.`service_of_doctor`
@@ -1086,7 +1086,7 @@ INSERT INTO `paid_hospital_db`.`service`
 VALUES
 ('Внутривенная урография',
 4300,
-(SELECT id FROM type_service WHERE type_label = 'Ренгенологические исследования'),
+(SELECT id FROM type_service WHERE type_label = 'Рентгенологические исследования'),
 'Исследование');
 
 INSERT INTO `paid_hospital_db`.`service_of_doctor`
