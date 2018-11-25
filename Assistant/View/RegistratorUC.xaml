@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:local="clr-namespace:Assistant.ViewModel"
+             xmlns:sys="clr-namespace:System;assembly=mscorlib"
              mc:Ignorable="d"
              d:DesignHeight="450" d:DesignWidth="980">
 
@@ -41,8 +42,7 @@
             <!--Поиск записи-->
             <UniformGrid Grid.Column="0" Grid.Row="0" Rows="2" >
                 <Label HorizontalContentAlignment="Center" Content="Для поиска записи введите дату"/>
-                <DatePicker SelectedDate="{Binding FindEntry, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
-                        FirstDayOfWeek="Monday" SelectedDateFormat="Short" />
+                <DatePicker SelectedDate="{Binding FindEntry, Mode=OneWayToSource, UpdateSourceTrigger=PropertyChanged}"/>
             </UniformGrid>
             <!--Поиск клиента-->
             <UniformGrid Style="{StaticResource HideUniformGrid}"  Grid.Column="1" Grid.Row="0" Rows="2" >
@@ -135,7 +135,7 @@
                     </UniformGrid>
                     <UniformGrid Style="{StaticResource Input}" Columns="2" >
                         <TextBlock Text="Категория услуги" />
-                        <ComboBox ItemsSource="{Binding TypeServices, Mode=OneWay}" SelectedItem="{Binding SectedType, Mode=OneWayToSource}" >
+                        <ComboBox ItemsSource="{Binding TypeServices, Mode=OneWay}" SelectedItem="{Binding SelectedType, Mode=TwoWay}" >
                             <ComboBox.ItemTemplate>
                                 <DataTemplate>
                                     <TextBlock Text="{Binding Lable, Mode=OneWay}"/>
@@ -145,7 +145,7 @@
                     </UniformGrid>
                     <UniformGrid Style="{StaticResource Input}" Columns="2" >
                         <TextBlock Text="Услуга" />
-                        <ComboBox ItemsSource="{Binding Services, Mode=OneWay}" SelectedItem="{Binding SelectedService, Mode=OneWayToSource}" >
+                        <ComboBox ItemsSource="{Binding Services, Mode=OneWay}" SelectedItem="{Binding SelectedService, Mode=TwoWay}" >
                             <ComboBox.ItemTemplate>
                                 <DataTemplate>
                                     <UniformGrid Rows="2">

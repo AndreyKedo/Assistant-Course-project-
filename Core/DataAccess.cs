@@ -86,32 +86,29 @@ namespace Core
                             isUpdate = true;
                             while (await reader.ReadAsync())
                             {
-                                if (reader.GetDateTime(2).Date == DateTime.Now.Date)
+                                GetEntries.Add(new Entry()
                                 {
-                                    GetEntries.Add(new Entry()
+                                    RegistratorEntry = new Registrator() { Id = await reader.GetFieldValueAsync<uint>(0), Fio = reader.GetString(1) },
+                                    DateRegistration = reader.GetDateTime(2),
+                                    PatientEntry = new Patient()
                                     {
-                                        RegistratorEntry = new Registrator() { Id = await reader.GetFieldValueAsync<uint>(0), Fio = reader.GetString(1) },
-                                        DateRegistration = reader.GetDateTime(2),
-                                        PatientEntry = new Patient()
-                                        {
-                                            Id = await reader.GetFieldValueAsync<uint>(3),
-                                            LastName = reader.GetString(4),
-                                            FirstName = reader.GetString(5),
-                                            ThridName = reader.GetString(6),
-                                            Sex = reader.GetString(7),
-                                            Birthday = reader.GetDateTime(8),
-                                            Address = reader.GetString(9),
-                                            PhoneNumber = reader.GetString(10)
-                                        },
-                                        ServiceEntry = new Service()
-                                        {
-                                            Id = await reader.GetFieldValueAsync<uint>(11),
-                                            Lable = reader.GetString(12),
-                                            Price = await reader.GetFieldValueAsync<uint>(13),
-                                            Action = reader.GetString(14)
-                                        }
-                                    });
-                                }
+                                        Id = await reader.GetFieldValueAsync<uint>(3),
+                                        LastName = reader.GetString(4),
+                                        FirstName = reader.GetString(5),
+                                        ThridName = reader.GetString(6),
+                                        Sex = reader.GetString(7),
+                                        Birthday = reader.GetDateTime(8),
+                                        Address = reader.GetString(9),
+                                        PhoneNumber = reader.GetString(10)
+                                    },
+                                    ServiceEntry = new Service()
+                                    {
+                                        Id = await reader.GetFieldValueAsync<uint>(11),
+                                        Lable = reader.GetString(12),
+                                        Price = await reader.GetFieldValueAsync<uint>(13),
+                                        Action = reader.GetString(14)
+                                    }
+                                });
                             }
                         }
                         reader.Close();

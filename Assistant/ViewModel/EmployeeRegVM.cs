@@ -43,7 +43,7 @@ namespace Assistant.ViewModel
         public ReadOnlyObservableCollection<TypeService> TypeServices { get; set; }
 
         private TypeService _selectType;
-        public TypeService SectedType
+        public TypeService SelectedType
         {
             get => _selectType;
             set
@@ -58,7 +58,7 @@ namespace Assistant.ViewModel
                         Services.Add(item.Key);
                     }
                 }
-                OnChanged(nameof(SectedType));
+                OnChanged(nameof(SelectedType));
             }
         }
         #endregion
@@ -76,7 +76,7 @@ namespace Assistant.ViewModel
                 if (_selectService != null)
                 {
                     Doctor buffer;
-                    SectedType.GetServiceOfDoctor.TryGetValue(SelectedService, out buffer);
+                    SelectedType.GetServiceOfDoctor.TryGetValue(SelectedService, out buffer);
                     Doc = buffer;
                 }
                 OnChanged(nameof(SelectedService));
@@ -203,20 +203,20 @@ namespace Assistant.ViewModel
         {
             get => new DelegateCommand(async(obj)=> 
             {
-                if (SelectPatient != null)
+                if (SelectPatient != null && EntryCreate.EqualsPatient(ref _patient))
                 {
                     await DataAccess.AddEntry(EntryCreate.GetEntry(SelectedService, Doc, Employees), SelectPatient.Id);
                 }
                 else
                 {
                     await DataAccess.AddEntry(EntryCreate.GetEntry(SelectedService, Doc, Employees));
+                    UpdateLists();
                 }
-                Services.Clear();
-                SelectedService = null;
-                SectedType = null;
-                Doc = null;
                 EntryCreate.ClearData();
-                GetEntriesToDate(DateTime.Now);
+                SelectedService = null;
+                SelectedType = null;
+                Doc = null;
+                GetEntriesToDate(FindEntry);
             },(obj)=> 
             {
                 return EntryCreate.ValidationData() && SelectedService != null;
@@ -242,7 +242,7 @@ namespace Assistant.ViewModel
         //выгружает записи на текущий день
         private void GetEntriesToDate(DateTime date)
         {
-            if (DataAccess.GetPatient.Count != 0)
+            if (DataAccess.GetEntries.Count != 0 || DataAccess.GetEntries.Count != Entries.Count)
             {
                 if (Entries.Count != 0)
                     Entries.Clear();
@@ -277,7 +277,6 @@ namespace Assistant.ViewModel
                 Services = new ObservableCollection<Service>();
                 EntryCreate = new CreateEntry();
                 EntryCreate.ClearData();
-                FindEntry = DateTime.UtcNow;
             }
         }
         #endregion
@@ -431,6 +430,11 @@ namespace Assistant.ViewModel
             Birthday = patient.Birthday;
             Address = patient.Address;
             PhoneNumber = patient.PhoneNumber;
+        }
+
+        public bool EqualsPatient(ref Patient patient)
+        {
+            return (LName != patient.LastName && FName != patient.FirstName && TName != patient.ThridName && PhoneNumber != patient.PhoneNumber);
         }
 
         public Entry GetEntry(Service service, IEmployees doc, IEmployees reg)
